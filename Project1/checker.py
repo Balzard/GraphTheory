@@ -1,5 +1,4 @@
-import solve
-
+from solve import solve
 ### Just do "python checker.py" to launch the tests ###
 
 """
@@ -67,15 +66,17 @@ def compare_files(file1, file2):
     Test for one file
 """
 def do_test(test):
-    input_file = "tests/input"+str(test)+".txt"
-    expected_output_file = "tests/output"+str(test)+".txt"
+    input_file = "Project1/tests/input"+str(test)+".txt"
+    expected_output_file = "Project1/tests/output"+str(test)+".txt"
 
-    read_and_solve_tests(input_file, "tmp/output"+str(test)+".txt")
-    ok,errorLine = compare_files(expected_output_file, "tmp/output"+str(test)+".txt")
+    read_and_solve_tests(input_file, "Project1/tmp/output"+str(test)+".txt")
+    ok,errorLine = compare_files(expected_output_file, "Project1/tmp/output"+str(test)+".txt")
     if not ok:
         print("Difference between output and expected output for test : "+str(test)+ " on line : "+str(errorLine))
     else:
         print("Test "+str(test)+" is ok :)")
 
-for i in range(5):
+for i in range(2):
     do_test(i+1)
+
+
