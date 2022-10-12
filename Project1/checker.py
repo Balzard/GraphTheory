@@ -76,7 +76,7 @@ def do_test(test):
     else:
         print("Test "+str(test)+" is ok :)")
 
-for i in range(5):
+for i in range(2):
     do_test(i+1)
 
 

@@ -5,10 +5,10 @@ class Kosaraju:
     
     def __init__(self, adj) -> None:
         self.adj = adj
-        self.transpose = [[x for x in range(len(adj)) if y in adj[x]] for y in range(len(adj))]
         self.N = len(adj)
+        self.transpose = [[] for _ in range(self.N)]
         self.visited = [False] * self.N
-        self.stack = deque()
+        self.L = deque()
         self.components = [None] * self.N
         
     def _visit(self, vertex):
@@ -16,7 +16,8 @@ class Kosaraju:
             self.visited[vertex] = True
             for neighbor in self.adj[vertex]:
                 self._visit(neighbor)
-            self.stack.append(vertex)
+                self.transpose[neighbor].append(vertex)
+            self.L.append(vertex)
             
     def _assign(self, u, r):
         if self.visited[u]:
@@ -29,8 +30,8 @@ class Kosaraju:
         for i in range(self.N):
             self._visit(i)
             
-        while self.stack:
-            u = self.stack.pop()
+        while self.L:
+            u = self.L.pop()
             self._assign(u,u)
             
         return self
@@ -49,62 +50,46 @@ class Kosaraju:
                     sccWithIncomingEdges[self.components[x]] = 1
                     
         return nbSCC - sum(sccWithIncomingEdges)
-
-
-def iterativeKosaraju(adj):
     
-    N = len(adj)
-    transpose = [[] for _ in range(N)]
-    visited = [False] * N
-    L = deque()
-    components = [None] * N
-
-    for vertex in range(N):
-        if not visited[vertex]:
-            visited[vertex], stack = True, [vertex]
+    
+class IterativeKosaraju(Kosaraju):
+    
+    def __init__(self, adj) -> None:
+        super().__init__(adj)
+        
+    def computeComponents(self):
+        for vertex in range(self.N):
+            if not self.visited[vertex]:
+                self.visited[vertex], stack = True, [vertex]
+                while stack:
+                    vertex = stack[-1]
+                    for neighbor in self.adj[vertex]:
+                        self.transpose[neighbor].append(vertex)
+                        if not self.visited[neighbor]:
+                            self.visited[neighbor] = True
+                            stack.append(neighbor)
+                            break
+                    else:
+                        stack.pop()
+                        self.L.append(vertex)
+                        
+        while self.L:
+            root = self.L.pop()
+            stack = [root]
+            if self.visited[root]:
+                self.visited[root], self.components[root] = False, root
             while stack:
-                vertex = stack[-1]
-                for neighbor in adj[vertex]:
-                    transpose[neighbor].append(vertex)
-                    if not visited[neighbor]:
-                        visited[neighbor] = True
+                for neighbor in self.transpose[stack[-1]]:
+                    if self.visited[neighbor]:
+                        self.visited[neighbor] = False
                         stack.append(neighbor)
+                        self.components[neighbor] = root
                         break
-                    
                 else:
                     stack.pop()
-                    L.append(vertex)
-                    
-    while L:
-        root = L.pop()
-        stack = [root]
-        if visited[root]:
-            visited[root], components[root] = False, root
-        while stack:
-            for neighbor in transpose[stack[-1]]:
-                if visited[neighbor]:
-                    visited[neighbor] = False
-                    stack.append(neighbor)
-                    components[neighbor] = root
-                    break
-            else:
-                stack.pop()
-    
-    return components
-
-
-def getMinNbOfKots(components, adj):
-    nbSCC = len(set(components)) 
-    sccWithIncomingEdges = [0 for _ in range(len(adj))]
-
-    for vertex in range(len(adj)): 
-        for neighbor in adj[vertex]: 
-            if components[neighbor] != components[vertex]: # not in the same SCC
-                sccWithIncomingEdges[components[neighbor]] = 1
-                
-    return nbSCC - sum(sccWithIncomingEdges)
-
+        
+        return self
 
 def solve(adj):
-    components = iterativeKosaraju(adj)
-    return getMinNbOfKots(components, adj)
+    graph = IterativeKosaraju(adj)
+    return graph.computeComponents().getMinNbOfKots()
