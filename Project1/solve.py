@@ -1,6 +1,6 @@
 from collections import deque
-from pydoc import visiblename
 
+# recursive kosaraju
 class Kosaraju:
     
     def __init__(self, adj) -> None:
@@ -25,7 +25,7 @@ class Kosaraju:
             for neighbor in self.transpose[u]:
                 self._assign(neighbor, r)
                 
-    def getComponents(self):
+    def computeComponents(self):
         for i in range(self.N):
             self._visit(i)
             
@@ -33,211 +33,78 @@ class Kosaraju:
             u = self.stack.pop()
             self._assign(u,u)
             
-        return self.components
+        return self
     
+    def getNbSCC(self):
+        return len(set(self.components))
     
-class IterativeKosaraju(Kosaraju):
+    def getMinNbOfKots(self):
+        # need to compute nb of SCC with incoming edges
+        nbSCC = self.getNbSCC() 
+        sccWithIncomingEdges = [0 for _ in range(self.N)]
+
+        for i in range(self.N): 
+            for x in self.adj[i]: 
+                if self.components[x] != self.components[i]: # not in the same SCC
+                    sccWithIncomingEdges[self.components[x]] = 1
+                    
+        return nbSCC - sum(sccWithIncomingEdges)
+
+
+def iterativeKosaraju(adj):
     
-    def __init__(self, adj) -> None:
-        super().__init__(adj)
-    
-    def getComponents(self):
-        for vertex in range(self.N):
-            if not self.visited[vertex]:
-                self.visited[vertex], S = True, [vertex]
-                while S:
-                    vertex, done = S[-1], True
-                    for neighbor in self.adj[vertex]:
-                        if not self.visited[neighbor]:
-                            self.visited[neighbor], done = True, False
-                            S.append(neighbor)
-                            break
-                        if done:
-                            S.pop()
-                            self.stack.append(vertex)
-                            
-        while self.stack:
-            r = self.stack.pop()
-            S = [r]
-            if self.visited[r]:
-                self.visited[r], self.components[r] = False, r
-            while S:
-                u, done = S[-1], True
-                for neighbor in self.transpose[u]:
-                    if self.visited[neighbor]:
-                        self.visited[neighbor] = done = False
-                        S.append(neighbor)
-                        self.components[neighbor] = r
+    N = len(adj)
+    transpose = [[] for _ in range(N)]
+    visited = [False] * N
+    L = deque()
+    components = [None] * N
+
+    for vertex in range(N):
+        if not visited[vertex]:
+            visited[vertex], stack = True, [vertex]
+            while stack:
+                vertex = stack[-1]
+                for neighbor in adj[vertex]:
+                    transpose[neighbor].append(vertex)
+                    if not visited[neighbor]:
+                        visited[neighbor] = True
+                        stack.append(neighbor)
                         break
                     
-                if done:
-                    S.pop()
+                else:
+                    stack.pop()
+                    L.append(vertex)
                     
-        return self.components
-
-
-
-def kosaraju_iterative(G):
-    
-    # postorder DFS on G to transpose the graph and push root vertices to L
-    N = len(G)
-    T, L, U = [[] for _ in range(N)], [], [False] * N
-    for u in range(N):
-        if not U[u]:
-            U[u], S = True, [u]
-            while S:
-                u, done = S[-1], True
-                for v in G[u]:
-                    T[v].append(u)
-                    if not U[v]:
-                        U[v], done = True, False
-                        S.append(v)
-                        break
-                if done:
-                    S.pop()
-                    L.append(u)
-    
-    # postorder DFS on T to pop root vertices from L and mark SCCs
-    C = [None] * N
     while L:
-        r = L.pop()
-        S = [r]
-        if U[r]:
-            U[r], C[r] = False, r
-        while S:
-            u, done = S[-1], True
-            for v in T[u]:
-                if U[v]:
-                    U[v] = done = False
-                    S.append(v)
-                    C[v] = r
+        root = L.pop()
+        stack = [root]
+        if visited[root]:
+            visited[root], components[root] = False, root
+        while stack:
+            for neighbor in transpose[stack[-1]]:
+                if visited[neighbor]:
+                    visited[neighbor] = False
+                    stack.append(neighbor)
+                    components[neighbor] = root
                     break
-            if done:
-                S.pop()
+            else:
+                stack.pop()
     
-    return C
+    return components
 
-def SCC_to_min_kot(sol,adj):
-    unique= len(set(sol)) # number of scc in graph
-    tmp = [0 for _ in range(max(sol)+1)]  #tmp is used to keep track of the SCC which have an incoming node
 
-    for i in range(len(adj)): #we loop over the edges knowing it starts from node i
-        for x in adj[i]: #This means that there is an edge from i to x
-            if (sol[x] != sol[i]): #If they are not in the same SCC
-                tmp[sol[x]]=1
-    return(unique-sum(tmp)) #(nb min kot) = (nb SCC) - (nbr SCC which have incoming edge)
-      
-def solve(adj):
-    g = IterativeKosaraju(adj)
-    l = g.getComponents()
-    return SCC_to_min_kot(l, adj)  
+def getMinNbOfKots(components, adj):
+    nbSCC = len(set(components)) 
+    sccWithIncomingEdges = [0 for _ in range(len(adj))]
 
-# adj = [[1], [0, 2], [0, 3, 4], [4], [5], [6], [4], [6]]
-# g = IterativeKosaraju(adj)
-# c = g.getComponents()
-# print(c)
-
-# class Graph:
-    
-#     def __init__(self, matrix) -> None:
-#         self.matrix = matrix
-#         self._visited = [False] * len(self.matrix)
-#         self._stack = deque()
-#         self.nbSCC = 0
-#         self.transpose = [[x for x in range(len(matrix)) if y in matrix[x]] for y in range(len(matrix))]
-        
-#     def dfs(self, vertex: int) -> None:
-#         self._visited[vertex] = True
-#         for i in self.transpose[vertex]:
-#             if not self._visited[i]:
-#                 self.dfs(i)
-        
-            
-#     def fillOrder(self, vertex: int) -> None:
-#         self._visited[vertex] = True
-#         for i in self.matrix[vertex]:
-#             if not self._visited[i]:
-#                 self.fillOrder(i)
-#         self._stack.append(vertex)
-        
-    
-#     def getNbSCC(self) -> int:
-#         sol = [0 for _ in range(len(self.matrix))]
-#         #1
-#         for i in range(len(self.matrix)):
-#             if not self._visited[i]:
-#                 self.fillOrder(i)
-        
-#         self._visited = [False] * len(self.matrix)
-        
-#         #3
-#         tmp = 0
-#         while self._stack:
-#             i = self._stack.pop()
-#             if not self._visited[i]:
-#                 self.dfs(i) # make with transpose
-#                 sol[i] = tmp
-#                 self.nbSCC += 1
-#             tmp += 1
+    for vertex in range(len(adj)): 
+        for neighbor in adj[vertex]: 
+            if components[neighbor] != components[vertex]: # not in the same SCC
+                sccWithIncomingEdges[components[neighbor]] = 1
                 
-#         return sol
+    return nbSCC - sum(sccWithIncomingEdges)
 
 
-# """
-#     Solves the problem defined in the statement for adj an adjacency list of the dispersion dynamics of rumors in LLN
-#         adj is a list of length equal to the number of kots
-#         adj[i] gives a list of kots touched by i with direct edges (0-based)
-
-#     You are free to change the code below and to not use the precompleted part. The code is based on the high-level description at https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm
-#     You can also define other sub-functions or import other datastructures from the collections library
-# """
-# def solve(adj):
-#     # adjacency of the graph and its transpose
-#     adj_out = adj
-#     adj_in = transpose(adj_out)
-
-#     # number of nodes
-#     N = len(adj_in)
-
-#     # is a node already visited?
-#     visited = [False]*N
-#     # list of node to process in the second step
-#     L = []
-#     # queue of nodes to process with their associated status (i,False/True) i is the node index and True/False describes if we are appending the node to L or not when processing it
-#     q = deque()
-
-#     ### loop on every node and launch a visit of its descendants
-#     for x in range(N):
-#         q.append((x,False))
-
-#         while q:
-#             x,to_append = q.pop()
-
-#             if to_append:
-#                 L.append(x)
-
-#             # TO COMPLETE
-
-
-#     ### reverse the list to obtain the post-order
-#     L.reverse()
-
-
-#     ### find the strongly connected components
-    
-#     # TO COMPLETE
-
-
-#     ### compute answer
-#     ans = 0
-#     # TO COMPLETE
-
-#     return ans
-
-# """
-#     Transpose the adjacency matrix
-#         Construct a new adjacency matrix by inverting all the edges: (x->y) becomes (y->x) 
-# """
-# def transpose(adj):
-
-#     return [[x+1 for x in range(len(adj)) if y+1 in adj[x]] for y in range(len(adj))]
+def solve(adj):
+    components = iterativeKosaraju(adj)
+    return getMinNbOfKots(components, adj)
