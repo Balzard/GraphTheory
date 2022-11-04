@@ -92,8 +92,8 @@ def min_cut(N, edges):
         def getSubsets(edge, uf):
             return uf.find(edge[0]), uf.find(edge[1])
         
-        while N > 2:
-            edge = random.choice(edges)
+        while nodes > 2:
+            edge = edges[int((random.random()*10) % len(edges))]
             subset1, subset2 = getSubsets(edge, uf)
             if subset1 != subset2:
                 uf.union(subset1, subset2)
@@ -108,25 +108,22 @@ def min_cut(N, edges):
     
     # TO COMPLETE (apply karger several times)
     # Probability to return the true min cut should be at least 0.9999
-    alpha = 0.9999
+    alpha = 1 - 0.9999
     p = 2/(N*(N-1))
-    iterations = int((math.log(alpha)/math.log(1 - p))*(10**5))
-    best_min_cut = math.inf
-    for i in range(iterations):
-        curr = karger(N, edges)
-        best_min_cut = best_min_cut if curr > best_min_cut else curr
-    
-    return best_min_cut
+    k = int((math.log(1-alpha)/math.log(1 - p))*(10**5))
+    best = math.inf
+    for _ in range(k):
+        tmp = karger(N, edges)
+        if tmp <= best:
+            best = tmp
+    return best
     
    
 if __name__ == "__main__":
 
     # Read Input for the second exercice
     
-    import os
-    print(os.getcwd())
-    
-    with open('./Project2/in2.txt', 'r') as fd:
+    with open('./in2.txt', 'r') as fd:
         l = fd.readline()
         l = l.rstrip().split(' ')
         
@@ -144,7 +141,7 @@ if __name__ == "__main__":
      
     # Check results for the second exercice
 
-    with open('./Project2/out2.txt', 'r') as fd:
+    with open('./out2.txt', 'r') as fd:
         l_output = fd.readline()
         expected_output = int(l_output)
         
