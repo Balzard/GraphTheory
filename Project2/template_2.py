@@ -55,7 +55,8 @@ class Union_Find():
         OUTPUT:
             - return the root of the element a
         """
-        if a != this.p[a]: this.p[a] = this.find(this.p[a])
+        if a != this.p[a]: 
+            this.p[a] = this.find(this.p[a])
         return this.p[a]
     
 
@@ -83,17 +84,37 @@ def min_cut(N, edges):
         See project homework for more details
         """
         
-        this_min_cut = -1
+        this_min_cut = 0
+        uf = Union_Find(N)
         
         # TO COMPLETE
+        
+        def getSubsets(edge, uf):
+            return uf.find(edge[0]), uf.find(edge[1])
+        
+        while N > 2:
+            edge = random.choice(edges)
+            subset1, subset2 = getSubsets(edge, uf)
+            if subset1 != subset2:
+                uf.union(subset1, subset2)
+                nodes -= 1
+                
+        for edge in edges:
+            subset1, subset2 = getSubsets(edge, uf)
+            if subset1 != subset2:
+                this_min_cut += 1
 
         return this_min_cut 
-   
-    
-    best_min_cut = -1
     
     # TO COMPLETE (apply karger several times)
     # Probability to return the true min cut should be at least 0.9999
+    alpha = 0.9999
+    p = 2/(N*(N-1))
+    iterations = int((math.log(alpha)/math.log(1 - p))*(10**5))
+    best_min_cut = math.inf
+    for i in range(iterations):
+        curr = karger(N, edges)
+        best_min_cut = best_min_cut if curr > best_min_cut else curr
     
     return best_min_cut
     
@@ -102,7 +123,10 @@ if __name__ == "__main__":
 
     # Read Input for the second exercice
     
-    with open('in2.txt', 'r') as fd:
+    import os
+    print(os.getcwd())
+    
+    with open('./Project2/in2.txt', 'r') as fd:
         l = fd.readline()
         l = l.rstrip().split(' ')
         
@@ -120,7 +144,7 @@ if __name__ == "__main__":
      
     # Check results for the second exercice
 
-    with open('out2.txt', 'r') as fd:
+    with open('./Project2/out2.txt', 'r') as fd:
         l_output = fd.readline()
         expected_output = int(l_output)
         
@@ -128,5 +152,4 @@ if __name__ == "__main__":
             print("Exercice 2 : Correct")
         else:
             print("Exercice 2 : Wrong answer")
-            print("Your output : %d ; Correct answer : %d" % (ans, expected_output)) 
-
+            print("Your output : %d ; Correct answer : %d" % (ans, expected_output))
