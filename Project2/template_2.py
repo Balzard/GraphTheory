@@ -84,7 +84,7 @@ def min_cut(N, edges):
         See project homework for more details
         """
         
-        this_min_cut = 0
+        this_min_cut, currentEdge = 0, 0
         uf = Union_Find(N)
         
         # TO COMPLETE
@@ -98,24 +98,27 @@ def min_cut(N, edges):
             if subset1 != subset2:
                 uf.union(subset1, subset2)
                 nodes -= 1
-                
-        for edge in edges:
-            subset1, subset2 = getSubsets(edge, uf)
-            if subset1 != subset2:
+                currentEdge += 1
                 this_min_cut += 1
+            
+                # if currentEdge == N-2:
+                #     break
+                
+        # for edge in edges:
+        #     subset1, subset2 = getSubsets(edge, uf)
+        #     if subset1 != subset2:
+        #         this_min_cut += 1
 
         return this_min_cut 
     
     # TO COMPLETE (apply karger several times)
     # Probability to return the true min cut should be at least 0.9999
-    alpha = 1 - 0.9999
+    best = karger(N, edges)
     p = 2/(N*(N-1))
-    k = int((math.log(1-alpha)/math.log(1 - p))*(10**5))
+    k = -4/math.log10(1 - p)
     best = math.inf
-    for _ in range(k):
-        tmp = karger(N, edges)
-        if tmp <= best:
-            best = tmp
+    for _ in range(math.ceil(k) - 1):
+        best = min(best, karger(N, edges))
     return best
     
    
@@ -123,7 +126,7 @@ if __name__ == "__main__":
 
     # Read Input for the second exercice
     
-    with open('./in2.txt', 'r') as fd:
+    with open('./for_student/Project2/in2.txt', 'r') as fd:
         l = fd.readline()
         l = l.rstrip().split(' ')
         
@@ -141,7 +144,7 @@ if __name__ == "__main__":
      
     # Check results for the second exercice
 
-    with open('./out2.txt', 'r') as fd:
+    with open('./for_student/Project2/out2.txt', 'r') as fd:
         l_output = fd.readline()
         expected_output = int(l_output)
         

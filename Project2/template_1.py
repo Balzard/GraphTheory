@@ -7,14 +7,6 @@
 import math
 import heapq
 
-def getAdj(N, roads):
-    adj = {i: [] for i in range(N)}
-    sumEdges = 0
-    for u, v, s in roads:
-        adj[u].append((v, s))
-        adj[v].append((u, s))
-        sumEdges += s
-    return adj, sumEdges
 
 def prim_mst(N, roads):
     """ 
@@ -26,6 +18,14 @@ def prim_mst(N, roads):
         
         See homework statement for more details
     """
+    def getAdj(N, roads):
+        adj = {i: [] for i in range(N)}
+        sumEdges = 0
+        for u, v, s in roads:
+            adj[u].append((v, s))
+            adj[v].append((u, s))
+            sumEdges += s
+        return adj, sumEdges
 
     satisfaction = 0
     
