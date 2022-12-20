@@ -56,15 +56,20 @@ def min_cost_max_flow(s: int, t: int, graph_residual: list[Edge]):
                     visited[edge.v] = True
                     parents[edge.v] = u
                     if edge.v == t:
-                        return True
-        return False
+                        return True, distance
+        return False, distance
 
     maximum_flow = 0
     minimum_cost = 0
     parents = [-1] * (len(graph_residual) + 1)
     visited = []
     
-    while BreadthFirstSearch(graph_residual, s, t, parents):
+    while True:
+        cond, distance = BreadthFirstSearch(graph_residual, s, t, parents)
+        #while cond:
+        if not cond:
+            break
+        
         pathFlow = float("Inf")
         j = t
         while(j != s):
@@ -76,13 +81,14 @@ def min_cost_max_flow(s: int, t: int, graph_residual: list[Edge]):
                     break
         
         maximum_flow += pathFlow
+        minimum_cost += pathFlow * distance[t]
 
         v = t
         while(v != s):
             u = parents[v]
             for edge in graph_residual[u]:
                 if edge.v == v:
-                    minimum_cost += edge.capa * edge.weight
+                    # minimum_cost += pathFlow * edge.weight
                     edge.capa -= pathFlow
                     edge.residual.capa += pathFlow
             v = parents[v]
