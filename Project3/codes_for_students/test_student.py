@@ -42,3 +42,6 @@ Writes a graph into file_name.
 def save_graph(file_name,graph):
     with open(file_name,'w') as file:
         file.write(from_adj_to_str(graph))
+        
+        
+print(load_graph("./codes_for_students/test_bench_students/test_01.txt"))
